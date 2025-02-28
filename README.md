@@ -1,6 +1,6 @@
-# Secure DTLS Client
+# Secure DTLS Server
 
-This project implements a DTLS (Datagram Transport Layer Security) client for
+This project implements a DTLS (Datagram Transport Layer Security) server for
 secure communication over UDP using OpenSSL. It connects to a DTLS server and
 performs authentication using X.509 certificates.
 
