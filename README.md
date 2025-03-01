@@ -4,7 +4,7 @@ This project implements a DTLS (Datagram Transport Layer Security) server for
 secure communication over UDP using OpenSSL. It connects to a DTLS server and
 performs authentication using X.509 certificates.
 
-## 📌 Requirements
+### 📌 Requirements
 
 - **Operating System**: Linux or macOS (Windows may require modifications)
 - **Compiler**: GCC (minimum `gcc 7.5.0`) or Clang
