@@ -1,6 +1,6 @@
 /**
- * @file squid_logger.c
- * @brief Implementation of logging functions for the Squid Logger.
+ * @file dtls_logger.c
+ * @brief Implementation of logging functions.
  */
 #include "logger.h"
 
@@ -19,14 +19,14 @@ static const char* str_log_severities[] = {
   "VERBOSE", "INFO", "DEBUG", "WARN", "ERROR", "CRIT",
 };
 
-static LogHandler __log_handlers[SQUID_LOGGER_SET_MAX_HANDLERS + 1] = {
+static LogHandler __log_handlers[DTLS_LOGGER_SET_MAX_HANDLERS + 1] = {
   {
-    .name = "squid_logger_write_stdout_handler",
-    .fnp = (squid_log_handler*)squid_logger_write_stdout_handler,
+    .name = "dtls_logger_write_stdout_handler",
+    .fnp = (dtls_log_handler*)dtls_logger_write_stdout_handler,
   },
   {
-    .name = "squid_logger_write_file_handler",
-    .fnp = (squid_log_handler*)squid_logger_write_file_handler,
+    .name = "dtls_logger_write_file_handler",
+    .fnp = (dtls_log_handler*)dtls_logger_write_file_handler,
   },
   {.name = NULL, .fnp = NULL},  // SENTINEL
 };
@@ -43,7 +43,7 @@ static pthread_mutex_t write_stdout_handler_mutex = PTHREAD_MUTEX_INITIALIZER;
  *
  * @param event The log event to write.
  */
-static void squid_logger_write_stdout_handler(LogEvent event) {
+static void dtls_logger_write_stdout_handler(LogEvent event) {
   pthread_mutex_lock(&write_stdout_handler_mutex);
 
   char        obuff[64];
@@ -53,12 +53,12 @@ static void squid_logger_write_stdout_handler(LogEvent event) {
 
   long tms;
 
-  if (squid_conate_timenow(&tms) != SQUID_CONATE_NO_ERROR) {
+  if (dtls_conate_timenow(&tms) != DTLS_CONATE_NO_ERROR) {
     tms = 0;
   }
 
-  if (squid_conate_timefmt(&tms, obuff, sizeof(obuff), TIME_FMT) !=
-      SQUID_CONATE_NO_ERROR) {
+  if (dtls_conate_timefmt(&tms, obuff, sizeof(obuff), TIME_FMT) !=
+      DTLS_CONATE_NO_ERROR) {
     snprintf(obuff, sizeof(obuff), "UNKNOWN_TIME");
   }
 
@@ -77,7 +77,7 @@ static void squid_logger_write_stdout_handler(LogEvent event) {
  *
  * @param event The log event to write.
  */
-static void squid_logger_write_file_handler(LogEvent event) {
+static void dtls_logger_write_file_handler(LogEvent event) {
   pthread_mutex_lock(&write_file_handler_mutex);
 
   char         fpath[256];
@@ -112,12 +112,12 @@ static void squid_logger_write_file_handler(LogEvent event) {
 
   long tms;
 
-  if (squid_conate_timenow(&tms) != SQUID_CONATE_NO_ERROR) {
+  if (dtls_conate_timenow(&tms) != DTLS_CONATE_NO_ERROR) {
     tms = 0;
   }
 
-  if (squid_conate_timefmt(&tms, obuff, sizeof(obuff), TIME_FMT) !=
-      SQUID_CONATE_NO_ERROR) {
+  if (dtls_conate_timefmt(&tms, obuff, sizeof(obuff), TIME_FMT) !=
+      DTLS_CONATE_NO_ERROR) {
     snprintf(obuff, sizeof(obuff), "UNKNOWN_TIME");
   }
 
@@ -139,13 +139,13 @@ static void squid_logger_write_file_handler(LogEvent event) {
  *              handler and the log event.
  * @return NULL
  */
-static void* squid_logger_pthread_handler_fn(void* vargs) {
-  LogEventHandler*  ptr_log_event_handler = (LogEventHandler*)(vargs);
-  LogEvent          event = *ptr_log_event_handler->event;
-  squid_log_handler handler = (*ptr_log_event_handler).handler->fnp;
+static void* dtls_logger_pthread_handler_fn(void* vargs) {
+  LogEventHandler* ptr_log_event_handler = (LogEventHandler*)(vargs);
+  LogEvent         event = *ptr_log_event_handler->event;
+  dtls_log_handler handler = (*ptr_log_event_handler).handler->fnp;
 
   // Calls the function with the appropriate injected event
-  ((squid_log_handler)handler)(event);
+  ((dtls_log_handler)handler)(event);
 
   return NULL;
 }
@@ -163,12 +163,12 @@ static void* squid_logger_pthread_handler_fn(void* vargs) {
  * @param severity The log severity.
  * @param ... Additional arguments for the log message format string.
  */
-void squid_logger(char* msg, char* rlt, int line, LogSeverity severity, ...) {
+void dtls_logger(char* msg, char* rlt, int line, LogSeverity severity, ...) {
   va_list ap;
   va_start(ap, severity);
 
-  char buffer[SQUID_LOGGER_BUFFER_SIZE];
-  vsnprintf(buffer, SQUID_LOGGER_BUFFER_SIZE, msg, ap);
+  char buffer[DTLS_LOGGER_BUFFER_SIZE];
+  vsnprintf(buffer, DTLS_LOGGER_BUFFER_SIZE, msg, ap);
 
   va_end(ap);
 
@@ -194,7 +194,7 @@ void squid_logger(char* msg, char* rlt, int line, LogSeverity severity, ...) {
     log_event_handler->event = ptr_log_event;
     log_event_handler->handler = ptr_log_handler;
 
-    pthread_create(&thread_id, NULL, squid_logger_pthread_handler_fn,
+    pthread_create(&thread_id, NULL, dtls_logger_pthread_handler_fn,
                    (void*)log_event_handler);
     pthread_detach(thread_id);
     ptr_log_handler++;
@@ -202,24 +202,24 @@ void squid_logger(char* msg, char* rlt, int line, LogSeverity severity, ...) {
 }
 
 /**
- * @brief Adds a log handler to the squid_logger.
+ * @brief Adds a log handler to the dtls_logger.
  *
- * This function adds a new log handler to the squid_logger, allowing it to process
+ * This function adds a new log handler to the dtls_logger, allowing it to process
  * log events. It returns an error code if the maximum number of handlers is
  * exceeded.
  *
  * @param name The name of the log handler.
  * @param fnp The function pointer to the log handler.
  * @return int Status code indicating the result of the operation.
- * @retval SQUID_LOGGER_NO_ERROR Success.
- * @retval SQUID_LOGGER_HANDLER_LIMIT_ERROR Maximum number of handlers
+ * @retval DTLS_LOGGER_NO_ERROR Success.
+ * @retval DTLS_LOGGER_HANDLER_LIMIT_ERROR Maximum number of handlers
  *         exceeded.
  */
-int squid_logger_add_log_handler(char* name, squid_log_handler fnp) {
-  int status = SQUID_LOGGER_NO_ERROR;
+int dtls_logger_add_log_handler(char* name, dtls_log_handler fnp) {
+  int status = DTLS_LOGGER_NO_ERROR;
 
   int        sent_index = -1;
-  LogHandler handler = {.name = name, .fnp = (squid_log_handler*)fnp};
+  LogHandler handler = {.name = name, .fnp = (dtls_log_handler*)fnp};
   int        nhandlers = sizeof(__log_handlers) / sizeof(__log_handlers[0]);
 
   for (int i = 0; i < nhandlers; i++) {
@@ -229,13 +229,13 @@ int squid_logger_add_log_handler(char* name, squid_log_handler fnp) {
     }
   }
 
-  if (sent_index == -1 || sent_index >= SQUID_LOGGER_SET_MAX_HANDLERS) {
-    status = SQUID_LOGGER_HANDLER_LIMIT_ERROR;
+  if (sent_index == -1 || sent_index >= DTLS_LOGGER_SET_MAX_HANDLERS) {
+    status = DTLS_LOGGER_HANDLER_LIMIT_ERROR;
     goto clean_up;
   }
 
-  if (sent_index > SQUID_LOGGER_SET_MAX_HANDLERS - 1) {
-    status = SQUID_LOGGER_HANDLER_LIMIT_ERROR;
+  if (sent_index > DTLS_LOGGER_SET_MAX_HANDLERS - 1) {
+    status = DTLS_LOGGER_HANDLER_LIMIT_ERROR;
     goto clean_up;
   }
 
@@ -247,18 +247,18 @@ clean_up:
 }
 
 /**
- * @brief Removes a log handler from the squid_logger.
+ * @brief Removes a log handler from the dtls_logger.
  *
  * This function removes a log handler by name. It returns an error code if the
  * handler is not found.
  *
  * @param name The name of the log handler to remove.
  * @return int Status code indicating the result of the operation.
- * @retval SQUID_LOGGER_NO_ERROR Success.
- * @retval SQUID_LOGGER_HANDLER_NOT_FOUND Handler not found.
+ * @retval DTLS_LOGGER_NO_ERROR Success.
+ * @retval DTLS_LOGGER_HANDLER_NOT_FOUND Handler not found.
  */
-int squid_logger_remove_log_handler(char* name) {
-  int status = SQUID_LOGGER_NO_ERROR;
+int dtls_logger_remove_log_handler(char* name) {
+  int status = DTLS_LOGGER_NO_ERROR;
 
   int n = 0;
   int found_index = -1;
@@ -272,7 +272,7 @@ int squid_logger_remove_log_handler(char* name) {
   }
 
   if (found_index == -1) {
-    status = SQUID_LOGGER_HANDLER_NOT_FOUND;
+    status = DTLS_LOGGER_HANDLER_NOT_FOUND;
     goto clean_up;
   }
 
@@ -289,7 +289,7 @@ clean_up:
 }
 
 /**
- * @brief Sets the log attribute for the squid_logger.
+ * @brief Sets the log attribute for the dtls_logger.
  *
  * This function sets the log attribute, including the log file path, maximum
  * size, and maximum line size. It returns an error code if there is an issue
@@ -297,35 +297,35 @@ clean_up:
  *
  * @param attr The log attribute to set.
  * @return int Status code indicating the result of the operation.
- * @retval SQUID_LOGGER_NO_ERROR Success.
- * @retval SQUID_LOGGER_RESOURCE_ALLOCATION_PROBLEM Resource allocation
+ * @retval DTLS_LOGGER_NO_ERROR Success.
+ * @retval DTLS_LOGGER_RESOURCE_ALLOCATION_PROBLEM Resource allocation
  *         problem.
  */
-int squid_logger_set_log_attribute(LogAttribute attr) {
-  int status = SQUID_LOGGER_NO_ERROR;
+int dtls_logger_set_log_attribute(LogAttribute attr) {
+  int status = DTLS_LOGGER_NO_ERROR;
 
   if (__log_attribute != NULL) {
-    status = SQUID_LOGGER_LOG_ATTR_ALREADY_INITIALIZED;
+    status = DTLS_LOGGER_LOG_ATTR_ALREADY_INITIALIZED;
     goto clean_up;
   }
 
   if ((__log_attribute = malloc(sizeof(LogAttribute))) == NULL) {
-    status = SQUID_LOGGER_RESOURCE_ALLOCATION_PROBLEM;
+    status = DTLS_LOGGER_RESOURCE_ALLOCATION_PROBLEM;
     goto clean_up;
   }
 
   if (memset(__log_attribute, 0, sizeof(LogAttribute)) == NULL) {
-    status = SQUID_LOGGER_RESOURCE_ALLOCATION_PROBLEM;
+    status = DTLS_LOGGER_RESOURCE_ALLOCATION_PROBLEM;
     goto clean_up;
   }
 
   if ((__log_attribute->path = malloc(strlen(attr.path) + 1)) == NULL) {
-    status = SQUID_LOGGER_RESOURCE_ALLOCATION_PROBLEM;
+    status = DTLS_LOGGER_RESOURCE_ALLOCATION_PROBLEM;
     goto clean_up;
   }
 
   if (strcpy(__log_attribute->path, attr.path) == NULL) {
-    status = SQUID_LOGGER_RESOURCE_ALLOCATION_PROBLEM;
+    status = DTLS_LOGGER_RESOURCE_ALLOCATION_PROBLEM;
     goto clean_up;
   }
 

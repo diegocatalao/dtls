@@ -1,13 +1,13 @@
-#ifndef __H_SQUID_LOGGER__
-#define __H_SQUID_LOGGER__
+#ifndef __H_DTLS_LOGGER__
+#define __H_DTLS_LOGGER__
 
 #include <string.h>
 
-#define SQUID_LOGGER_NO_ERROR                     0x1000
-#define SQUID_LOGGER_RESOURCE_ALLOCATION_PROBLEM  SQUID_LOGGER_NO_ERROR + 0x01
-#define SQUID_LOGGER_HANDLER_LIMIT_ERROR          SQUID_LOGGER_NO_ERROR + 0x02
-#define SQUID_LOGGER_HANDLER_NOT_FOUND            SQUID_LOGGER_NO_ERROR + 0x03
-#define SQUID_LOGGER_LOG_ATTR_ALREADY_INITIALIZED SQUID_LOGGER_NO_ERROR + 0x04
+#define DTLS_LOGGER_NO_ERROR                     0x1000
+#define DTLS_LOGGER_RESOURCE_ALLOCATION_PROBLEM  DTLS_LOGGER_NO_ERROR + 0x01
+#define DTLS_LOGGER_HANDLER_LIMIT_ERROR          DTLS_LOGGER_NO_ERROR + 0x02
+#define DTLS_LOGGER_HANDLER_NOT_FOUND            DTLS_LOGGER_NO_ERROR + 0x03
+#define DTLS_LOGGER_LOG_ATTR_ALREADY_INITIALIZED DTLS_LOGGER_NO_ERROR + 0x04
 
 /**
  * @enum LogSeverity
@@ -62,42 +62,42 @@ typedef struct {
 } LogEventHandler;
 
 /**
- * @typedef squid_log_handler
+ * @typedef dtls_log_handler
  * @brief Function pointer type for log handlers.
  */
-typedef void (*squid_log_handler)(LogEvent event);
+typedef void (*dtls_log_handler)(LogEvent event);
 
 /** */
 
 /**
- * @def SQUID_LOGGER_BUFFER_SIZE
+ * @def DTLS_LOGGER_BUFFER_SIZE
  * @brief Size of the formatted log buffer.
  */
-#define SQUID_LOGGER_BUFFER_SIZE      1024
+#define DTLS_LOGGER_BUFFER_SIZE      1024
 
 /**
- * @def SQUID_LOGGER_SET_MAX_HANDLERS
+ * @def DTLS_LOGGER_SET_MAX_HANDLERS
  * @brief Maximum number of global log handlers.
  */
-#define SQUID_LOGGER_SET_MAX_HANDLERS 100
+#define DTLS_LOGGER_SET_MAX_HANDLERS 100
 
 /**
  * @def TIME_FMT
  * @brief Format for date and time in logs.
  */
-#define TIME_FMT                      "%d-%m-%Y %H:%M:%S"
+#define TIME_FMT                     "%d-%m-%Y %H:%M:%S"
 
 /**
  * @def PFX_SRC_PATH
  * @brief Prefix for source path in log messages.
  */
-#define PFX_SRC_PATH                  "src"
+#define PFX_SRC_PATH                 "src"
 
 /**
  * @def LABEL
  * @brief Format for log labels.
  */
-#define LABEL                         " %s:%d - "
+#define LABEL                        " %s:%d - "
 
 /**
  * @def __RLT__
@@ -114,7 +114,7 @@ typedef void (*squid_log_handler)(LogEvent event);
  * @param ... Additional arguments for the debug message.
  */
 #define DEBUG(message, ...) \
-  squid_logger(message, __RLT__, __LINE__, DEBUG, ##__VA_ARGS__);
+  dtls_logger(message, __RLT__, __LINE__, DEBUG, ##__VA_ARGS__);
 
 /**
  * @def INFO
@@ -124,7 +124,7 @@ typedef void (*squid_log_handler)(LogEvent event);
  * @param ... Additional arguments for the informational message.
  */
 #define INFO(message, ...) \
-  squid_logger(message, __RLT__, __LINE__, INFO, ##__VA_ARGS__);
+  dtls_logger(message, __RLT__, __LINE__, INFO, ##__VA_ARGS__);
 
 /**
  * @def WARN
@@ -134,7 +134,7 @@ typedef void (*squid_log_handler)(LogEvent event);
  * @param ... Additional arguments for the warning message.
  */
 #define WARN(message, ...) \
-  squid_logger(message, __RLT__, __LINE__, WARN, ##__VA_ARGS__);
+  dtls_logger(message, __RLT__, __LINE__, WARN, ##__VA_ARGS__);
 
 /**
  * @def ERROR
@@ -144,7 +144,7 @@ typedef void (*squid_log_handler)(LogEvent event);
  * @param ... Additional arguments for the error message.
  */
 #define ERROR(message, ...) \
-  squid_logger(message, __RLT__, __LINE__, ERROR, ##__VA_ARGS__);
+  dtls_logger(message, __RLT__, __LINE__, ERROR, ##__VA_ARGS__);
 
 /**
  * @def CRIT
@@ -154,7 +154,7 @@ typedef void (*squid_log_handler)(LogEvent event);
  * @param ... Additional arguments for the critical message.
  */
 #define CRIT(message, ...) \
-  squid_logger(message, __RLT__, __LINE__, CRIT, ##__VA_ARGS__);
+  dtls_logger(message, __RLT__, __LINE__, CRIT, ##__VA_ARGS__);
 
 /**
  * @def RAISE_STATUS
@@ -164,9 +164,9 @@ typedef void (*squid_log_handler)(LogEvent event);
  * @param message The critical message.
  * @param ... Additional arguments for the critical message.
  */
-#define RAISE_STATUS(__status, message, ...)                      \
-  squid_logger(message, __RLT__, __LINE__, ERROR, ##__VA_ARGS__); \
-  status = __status;                                              \
+#define RAISE_STATUS(__status, message, ...)                     \
+  dtls_logger(message, __RLT__, __LINE__, ERROR, ##__VA_ARGS__); \
+  status = __status;                                             \
   goto clean_up
 
 /**  */
@@ -176,7 +176,7 @@ typedef void (*squid_log_handler)(LogEvent event);
  *
  * @param event The log event to write.
  */
-static void squid_logger_write_stdout_handler(LogEvent event)
+static void dtls_logger_write_stdout_handler(LogEvent event)
   __attribute__((used));
 
 /**
@@ -184,7 +184,7 @@ static void squid_logger_write_stdout_handler(LogEvent event)
  *
  * @param event The log event to handle.
  */
-static void squid_logger_write_file_handler(LogEvent event)
+static void dtls_logger_write_file_handler(LogEvent event)
   __attribute__((used));
 
 /**
@@ -192,7 +192,7 @@ static void squid_logger_write_file_handler(LogEvent event)
  *
  * @param vargs The `LogEventHandler` will be injected here.
  */
-static void* squid_logger_pthread_handler_fn(void* vargs) __attribute__((used));
+static void* dtls_logger_pthread_handler_fn(void* vargs) __attribute__((used));
 
 /**
  * @brief Logs a msg with the specified severity.
@@ -203,41 +203,41 @@ static void* squid_logger_pthread_handler_fn(void* vargs) __attribute__((used));
  * @param severity The severity of the log msg.
  * @param ... Additional arguments for the log msg.
  */
-void squid_logger(char* msg, char* rlt, int line, LogSeverity severity, ...);
+void dtls_logger(char* msg, char* rlt, int line, LogSeverity severity, ...);
 
 /**  */
 
 /**
- * @brief Adds a log handler to the squid_logger.
+ * @brief Adds a log handler to the dtls_logger.
  *
  * @param name The name of the log handler.
  * @param fnp The function pointer to the log handler.
  * @return int Status code indicating the result of the operation.
- * @retval SQUID_LOGGER_NO_ERROR Success.
- * @retval SQUID_LOGGER_HANDLER_LIMIT_ERROR Maximum number of handlers
+ * @retval DTLS_LOGGER_NO_ERROR Success.
+ * @retval DTLS_LOGGER_HANDLER_LIMIT_ERROR Maximum number of handlers
  * exceeded.
  */
-extern int squid_logger_add_log_handler(char* name, squid_log_handler fnp);
+extern int dtls_logger_add_log_handler(char* name, dtls_log_handler fnp);
 
 /**
- * @brief Removes a log handler from the squid_logger.
+ * @brief Removes a log handler from the dtls_logger.
  *
  * @param name The name of the log handler to remove.
  * @return int Status code indicating the result of the operation.
- * @retval SQUID_LOGGER_NO_ERROR Success.
- * @retval SQUID_LOGGER_HANDLER_NOT_FOUND Handler not found.
+ * @retval DTLS_LOGGER_NO_ERROR Success.
+ * @retval DTLS_LOGGER_HANDLER_NOT_FOUND Handler not found.
  */
-extern int squid_logger_remove_log_handler(char* name);
+extern int dtls_logger_remove_log_handler(char* name);
 
 /**
- * @brief Sets the log attribute for the squid_logger.
+ * @brief Sets the log attribute for the dtls_logger.
  *
  * @param attr The log attribute to set.
  * @return int Status code indicating the result of the operation.
- * @retval SQUID_LOGGER_NO_ERROR Success.
- * @retval SQUID_LOGGER_RESOURCE_ALLOCATION_PROBLEM Resource allocation
+ * @retval DTLS_LOGGER_NO_ERROR Success.
+ * @retval DTLS_LOGGER_RESOURCE_ALLOCATION_PROBLEM Resource allocation
  * problem.
  */
-extern int squid_logger_set_log_attribute(LogAttribute attr);
+extern int dtls_logger_set_log_attribute(LogAttribute attr);
 
-#endif  // __H_SQUID_LOGGER__
+#endif  // __H_DTLS_LOGGER__
